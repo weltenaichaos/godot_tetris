@@ -18,6 +18,9 @@ public partial class Main : Node2D
 	private int _currentY;
 	private int _currentColor;
 
+	private int[,] _nextShape;
+	private int _nextColor;
+
 	private Random _random = new Random();
 
 	private static readonly Color[] ColorsList = new Color[]
@@ -48,6 +51,7 @@ public partial class Main : Node2D
 
 	public override void _Ready()
 	{
+		GenerateNextPiece();
 		SpawnPiece();
 		SetProcess(true);
 	}
@@ -72,10 +76,17 @@ public partial class Main : Node2D
 
 	public override void _Input(InputEvent @event)
 	{
-		if (_gameOver) return;
-
 		if (@event is InputEventKey keyEvent && keyEvent.Pressed)
 		{
+			if (_gameOver)
+			{
+				if (keyEvent.Keycode == Key.Enter || keyEvent.Keycode == Key.KpEnter)
+				{
+					RestartGame();
+				}
+				return;
+			}
+
 			if (keyEvent.Keycode == Key.Left)
 			{
 				MovePiece(-1, 0);
@@ -102,19 +113,39 @@ public partial class Main : Node2D
 		}
 	}
 
-	private void SpawnPiece()
+	private void GenerateNextPiece()
 	{
 		int index = _random.Next(Shapes.Length);
-		_currentShape = (int[,])Shapes[index].Clone();
-		_currentColor = index + 1;
+		_nextShape = (int[,])Shapes[index].Clone();
+		_nextColor = index + 1;
+	}
+
+	private void SpawnPiece()
+	{
+		_currentShape = _nextShape;
+		_currentColor = _nextColor;
 		_currentX = Cols / 2 - _currentShape.GetLength(1) / 2;
 		_currentY = 0;
+
+		GenerateNextPiece();
 
 		if (!IsValidPosition(_currentShape, _currentX, _currentY))
 		{
 			_gameOver = true;
 			GD.Print("Game Over! Score: " + _score);
 		}
+	}
+
+	private void RestartGame()
+	{
+		_board = new int[Rows, Cols];
+		_score = 0;
+		_fallSpeed = 0.5;
+		_fallTimer = 0;
+		_gameOver = false;
+		GenerateNextPiece();
+		SpawnPiece();
+		QueueRedraw();
 	}
 
 	private bool MovePiece(int dx, int dy)
@@ -270,10 +301,36 @@ public partial class Main : Node2D
 			DrawLine(new Vector2(XOffset + x * CellSize, YOffset), new Vector2(XOffset + x * CellSize, YOffset + Rows * CellSize), new Color(0.3f, 0.3f, 0.3f));
 		}
 
+		// Draw next shape info
 		DrawString(ThemeDB.FallbackFont, new Vector2(10, 50), "Score: " + _score, HorizontalAlignment.Left, -1, 24, Colors.White);
+		DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + Cols * CellSize + 50, 50), "Next:", HorizontalAlignment.Left, -1, 24, Colors.White);
+
+		if (_nextShape != null)
+		{
+			int nextSize = _nextShape.GetLength(0);
+			int previewXOffset = XOffset + Cols * CellSize + 50;
+			int previewYOffset = 80;
+
+			for (int y = 0; y < nextSize; y++)
+			{
+				for (int x = 0; x < nextSize; x++)
+				{
+					if (_nextShape[y, x] != 0)
+					{
+						float px = previewXOffset + x * CellSize;
+						float py = previewYOffset + y * CellSize;
+						DrawRect(new Rect2(px + 1, py + 1, CellSize - 2, CellSize - 2), ColorsList[_nextColor]);
+					}
+				}
+			}
+		}
+
 		if (_gameOver)
 		{
-			DrawString(ThemeDB.FallbackFont, new Vector2(10, 100), "GAME OVER", HorizontalAlignment.Left, -1, 32, Colors.Red);
+			// Overlay
+			DrawRect(new Rect2(XOffset, YOffset, Cols * CellSize, Rows * CellSize), new Color(0, 0, 0, 0.7f));
+			DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + 20, Rows * CellSize / 2 - 20), "GAME OVER", HorizontalAlignment.Left, -1, 40, Colors.Red);
+			DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + 10, Rows * CellSize / 2 + 30), "Press ENTER to Restart", HorizontalAlignment.Left, -1, 20, Colors.White);
 		}
 	}
 
