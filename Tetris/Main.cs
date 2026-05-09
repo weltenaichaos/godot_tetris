@@ -49,6 +49,8 @@ public partial class Main : Node2D
 	};
 
 	private int _score = 0;
+	private int _level = 1;
+	private int _totalLinesCleared = 0;
 	private bool _gameOver = false;
 
 	private List<int> _highscores = new List<int>();
@@ -177,6 +179,8 @@ public partial class Main : Node2D
 	{
 		_board = new int[Rows, Cols];
 		_score = 0;
+		_level = 1;
+		_totalLinesCleared = 0;
 		_fallSpeed = 0.5;
 		_fallTimer = 0;
 		_gameOver = false;
@@ -293,6 +297,8 @@ public partial class Main : Node2D
 
 		if (linesCleared > 0)
 		{
+			_totalLinesCleared += linesCleared;
+			_level = 1 + (_totalLinesCleared / 10);
 			_score += linesCleared * 100;
 			_fallSpeed = Math.Max(0.1, _fallSpeed - 0.02);
 			GD.Print("Score: " + _score);
@@ -340,6 +346,7 @@ public partial class Main : Node2D
 
 		// Draw next shape info
 		DrawString(ThemeDB.FallbackFont, new Vector2(10, 50), "Score: " + _score, HorizontalAlignment.Left, -1, 24, Colors.White);
+		DrawString(ThemeDB.FallbackFont, new Vector2(10, 80), "Level: " + _level, HorizontalAlignment.Left, -1, 24, Colors.White);
 		DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + Cols * CellSize + 50, 50), "Next:", HorizontalAlignment.Left, -1, 24, Colors.White);
 
 		if (_nextShape != null)
