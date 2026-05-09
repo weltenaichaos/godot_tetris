@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public partial class Main : Node2D
 {
@@ -49,8 +51,12 @@ public partial class Main : Node2D
 	private int _score = 0;
 	private bool _gameOver = false;
 
+	private List<int> _highscores = new List<int>();
+	private const string HighscorePath = "user://highscores.txt";
+
 	public override void _Ready()
 	{
+		LoadHighscores();
 		GenerateNextPiece();
 		SpawnPiece();
 		SetProcess(true);
@@ -113,6 +119,36 @@ public partial class Main : Node2D
 		}
 	}
 
+	private void LoadHighscores()
+	{
+		if (FileAccess.FileExists(HighscorePath))
+		{
+			using var file = FileAccess.Open(HighscorePath, FileAccess.ModeFlags.Read);
+			_highscores.Clear();
+			while (!file.EofReached())
+			{
+				string line = file.GetLine();
+				if (int.TryParse(line, out int score))
+				{
+					_highscores.Add(score);
+				}
+			}
+			_highscores = _highscores.OrderByDescending(s => s).ToList();
+		}
+	}
+
+	private void AddHighscore(int score)
+	{
+		_highscores.Add(score);
+		_highscores = _highscores.OrderByDescending(s => s).Take(10).ToList();
+
+		using var file = FileAccess.Open(HighscorePath, FileAccess.ModeFlags.Write);
+		foreach (int s in _highscores)
+		{
+			file.StoreLine(s.ToString());
+		}
+	}
+
 	private void GenerateNextPiece()
 	{
 		int index = _random.Next(Shapes.Length);
@@ -131,6 +167,7 @@ public partial class Main : Node2D
 
 		if (!IsValidPosition(_currentShape, _currentX, _currentY))
 		{
+			AddHighscore(_score);
 			_gameOver = true;
 			GD.Print("Game Over! Score: " + _score);
 		}
@@ -323,6 +360,14 @@ public partial class Main : Node2D
 					}
 				}
 			}
+		}
+
+		int highscoreXOffset = XOffset + Cols * CellSize + 50;
+		int highscoreYOffset = 250;
+		DrawString(ThemeDB.FallbackFont, new Vector2(highscoreXOffset, highscoreYOffset), "Highscores:", HorizontalAlignment.Left, -1, 24, Colors.White);
+		for (int i = 0; i < _highscores.Count; i++)
+		{
+			DrawString(ThemeDB.FallbackFont, new Vector2(highscoreXOffset, highscoreYOffset + 30 + (i * 24)), $"{i + 1}. {_highscores[i]}", HorizontalAlignment.Left, -1, 20, Colors.White);
 		}
 
 		if (_gameOver)
