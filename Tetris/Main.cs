@@ -55,10 +55,19 @@ public partial class Main : Node2D
 
 	private List<int> _highscores = new List<int>();
 	private const string HighscorePath = "user://highscores.txt";
+	private AudioStreamPlayer _winSoundPlayer;
+	private bool _hasReachedNewHighscoreThisGame = false;
+	private int _currentHighscore = 0;
 
 	public override void _Ready()
 	{
+		_winSoundPlayer = new AudioStreamPlayer();
+		_winSoundPlayer.Stream = GD.Load<AudioStream>("res://win.wav");
+		AddChild(_winSoundPlayer);
+
 		LoadHighscores();
+		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
+
 		GenerateNextPiece();
 		SpawnPiece();
 		SetProcess(true);
@@ -184,6 +193,8 @@ public partial class Main : Node2D
 		_fallSpeed = 0.5;
 		_fallTimer = 0;
 		_gameOver = false;
+		_hasReachedNewHighscoreThisGame = false;
+		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
 		GenerateNextPiece();
 		SpawnPiece();
 		QueueRedraw();
@@ -302,6 +313,12 @@ public partial class Main : Node2D
 			_score += linesCleared * 100;
 			_fallSpeed = Math.Max(0.1, _fallSpeed - 0.02);
 			GD.Print("Score: " + _score);
+
+			if (_score > _currentHighscore && _currentHighscore > 0 && !_hasReachedNewHighscoreThisGame)
+			{
+				_hasReachedNewHighscoreThisGame = true;
+				_winSoundPlayer.Play();
+			}
 		}
 	}
 
