@@ -148,8 +148,10 @@ public partial class Main : Node2D
 		}
 	}
 
-	private void AddHighscore(int score)
+	private bool AddHighscore(int score)
 	{
+		bool isNewHighscore = score > 0 && (_highscores.Count < 10 || score > _highscores.LastOrDefault());
+
 		_highscores.Add(score);
 		_highscores = _highscores.OrderByDescending(s => s).Take(10).ToList();
 
@@ -158,6 +160,8 @@ public partial class Main : Node2D
 		{
 			file.StoreLine(s.ToString());
 		}
+
+		return isNewHighscore;
 	}
 
 	private void GenerateNextPiece()
@@ -178,7 +182,10 @@ public partial class Main : Node2D
 
 		if (!IsValidPosition(_currentShape, _currentX, _currentY))
 		{
-			AddHighscore(_score);
+			if (AddHighscore(_score))
+			{
+				_winSoundPlayer.Play();
+			}
 			_gameOver = true;
 			GD.Print("Game Over! Score: " + _score);
 		}
