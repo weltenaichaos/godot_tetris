@@ -54,7 +54,7 @@ public partial class Main : Node2D
 	private bool _gameOver = false;
 
 	private List<int> _highscores = new List<int>();
-	private const string HighscorePath = "user://highscores.txt";
+	private const string HighscorePath = "user://highscore.txt";
 	private AudioStreamPlayer _winSoundPlayer;
 	private bool _hasReachedNewHighscoreThisGame = false;
 	private int _currentHighscore = 0;
