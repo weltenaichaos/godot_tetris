@@ -59,14 +59,39 @@ public partial class Main : Node2D
 	private bool _hasReachedNewHighscoreThisGame = false;
 	private int _currentHighscore = 0;
 
+	private bool _hasReachedTop10ThisGame = false;
+	private int _top10Threshold = 0;
+	private CpuParticles2D _celebrationParticles;
+
 	public override void _Ready()
 	{
 		_winSoundPlayer = new AudioStreamPlayer();
 		_winSoundPlayer.Stream = GD.Load<AudioStream>("res://win.wav");
 		AddChild(_winSoundPlayer);
 
+		_celebrationParticles = new CpuParticles2D();
+		_celebrationParticles.Emitting = false;
+		_celebrationParticles.OneShot = true;
+		_celebrationParticles.Explosiveness = 0.8f;
+		_celebrationParticles.Amount = 50;
+		_celebrationParticles.Lifetime = 1.5f;
+		_celebrationParticles.Position = new Vector2(XOffset + Cols * CellSize / 2, YOffset + Rows * CellSize / 2);
+		_celebrationParticles.Spread = 180;
+		_celebrationParticles.InitialVelocityMin = 100;
+		_celebrationParticles.InitialVelocityMax = 300;
+		_celebrationParticles.ScaleAmountMin = 4;
+		_celebrationParticles.ScaleAmountMax = 8;
+
+		var gradient = new Gradient();
+		gradient.SetColor(0, Colors.Gold);
+		gradient.SetColor(1, Colors.White);
+		_celebrationParticles.ColorRamp = gradient;
+
+		AddChild(_celebrationParticles);
+
 		LoadHighscores();
 		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
+		_top10Threshold = _highscores.Count == 10 ? _highscores[9] : 0;
 
 		GenerateNextPiece();
 		SpawnPiece();
@@ -202,6 +227,8 @@ public partial class Main : Node2D
 		_gameOver = false;
 		_hasReachedNewHighscoreThisGame = false;
 		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
+		_hasReachedTop10ThisGame = false;
+		_top10Threshold = _highscores.Count == 10 ? _highscores[9] : 0;
 		GenerateNextPiece();
 		SpawnPiece();
 		QueueRedraw();
@@ -320,6 +347,12 @@ public partial class Main : Node2D
 			_score += linesCleared * 100;
 			_fallSpeed = Math.Max(0.1, _fallSpeed - 0.02);
 			GD.Print("Score: " + _score);
+
+			if (_score > _top10Threshold && _score > 0 && !_hasReachedTop10ThisGame)
+			{
+				_hasReachedTop10ThisGame = true;
+				_celebrationParticles.Emitting = true;
+			}
 
 			if (_score > _currentHighscore && _currentHighscore > 0 && !_hasReachedNewHighscoreThisGame)
 			{
