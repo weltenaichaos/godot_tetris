@@ -52,10 +52,14 @@ public partial class Main : Node2D
 		new int[,] { {0, 0, 9, 0, 0}, {0, 9, 9, 9, 0}, {0, 0, 9, 0, 0}, {0, 9, 9, 9, 0}, {0, 0, 9, 0, 0} } // Double Cross
 	};
 
+	public enum GameState { DifficultySelection, Playing, GameOver }
+	private GameState _gameState = GameState.DifficultySelection;
+
+	private int _scoreMultiplier = 1;
+
 	private int _score = 0;
 	private int _level = 1;
 	private int _totalLinesCleared = 0;
-	private bool _gameOver = false;
 
 	private List<int> _highscores = new List<int>();
 	private const string HighscorePath = "user://highscore.txt";
@@ -69,6 +73,10 @@ public partial class Main : Node2D
 
 	private RichTextLabel _helloLabel;
 	private double _helloTimer = 3.0;
+
+	private Button _btnEasy;
+	private Button _btnNormal;
+	private Button _btnHard;
 
 	public override void _Ready()
 	{
@@ -108,9 +116,58 @@ public partial class Main : Node2D
 		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
 		_top10Threshold = _highscores.Count == 10 ? _highscores[9] : 0;
 
+		CreateDifficultyButtons();
+
+		SetProcess(true);
+	}
+
+	private void CreateDifficultyButtons()
+	{
+		int buttonWidth = 150;
+		int buttonHeight = 50;
+		int centerX = XOffset + (Cols * CellSize) / 2 - buttonWidth / 2;
+		int centerY = YOffset + (Rows * CellSize) / 2 - buttonHeight / 2;
+
+		_btnEasy = new Button();
+		_btnEasy.Text = "Easy";
+		_btnEasy.Position = new Vector2(centerX, centerY - 60);
+		_btnEasy.Size = new Vector2(buttonWidth, buttonHeight);
+		_btnEasy.Pressed += () => OnDifficultySelected(1, 0.6);
+		AddChild(_btnEasy);
+
+		_btnNormal = new Button();
+		_btnNormal.Text = "Normal";
+		_btnNormal.Position = new Vector2(centerX, centerY);
+		_btnNormal.Size = new Vector2(buttonWidth, buttonHeight);
+		_btnNormal.Pressed += () => OnDifficultySelected(2, 0.45);
+		AddChild(_btnNormal);
+
+		_btnHard = new Button();
+		_btnHard.Text = "Hard";
+		_btnHard.Position = new Vector2(centerX, centerY + 60);
+		_btnHard.Size = new Vector2(buttonWidth, buttonHeight);
+		_btnHard.Pressed += () => OnDifficultySelected(3, 0.3);
+		AddChild(_btnHard);
+	}
+
+	private void OnDifficultySelected(int multiplier, double initialSpeed)
+	{
+		StartGame(multiplier, initialSpeed);
+	}
+
+	private void StartGame(int multiplier, double initialSpeed)
+	{
+		_scoreMultiplier = multiplier;
+		_fallSpeed = initialSpeed;
+		_gameState = GameState.Playing;
+
+		_btnEasy.Hide();
+		_btnNormal.Hide();
+		_btnHard.Hide();
+
 		GenerateNextPiece();
 		SpawnPiece();
-		SetProcess(true);
+		QueueRedraw();
 	}
 
 	public override void _Process(double delta)
@@ -124,7 +181,7 @@ public partial class Main : Node2D
 			}
 		}
 
-		if (_gameOver) return;
+		if (_gameState != GameState.Playing) return;
 
 		_fallTimer += delta;
 		if (_fallTimer >= _fallSpeed)
@@ -144,12 +201,17 @@ public partial class Main : Node2D
 	{
 		if (@event is InputEventKey keyEvent && keyEvent.Pressed)
 		{
-			if (_gameOver)
+			if (_gameState == GameState.GameOver)
 			{
 				if (keyEvent.Keycode == Key.Enter || keyEvent.Keycode == Key.KpEnter)
 				{
 					RestartGame();
 				}
+				return;
+			}
+
+			if (_gameState != GameState.Playing)
+			{
 				return;
 			}
 
@@ -235,7 +297,7 @@ public partial class Main : Node2D
 			{
 				_winSoundPlayer.Play();
 			}
-			_gameOver = true;
+			_gameState = GameState.GameOver;
 			GD.Print("Game Over! Score: " + _score);
 		}
 	}
@@ -248,13 +310,16 @@ public partial class Main : Node2D
 		_totalLinesCleared = 0;
 		_fallSpeed = 0.5;
 		_fallTimer = 0;
-		_gameOver = false;
+		_gameState = GameState.DifficultySelection;
 		_hasReachedNewHighscoreThisGame = false;
 		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
 		_hasReachedTop10ThisGame = false;
 		_top10Threshold = _highscores.Count == 10 ? _highscores[9] : 0;
-		GenerateNextPiece();
-		SpawnPiece();
+
+		_btnEasy.Show();
+		_btnNormal.Show();
+		_btnHard.Show();
+
 		QueueRedraw();
 	}
 
@@ -368,8 +433,8 @@ public partial class Main : Node2D
 		{
 			_totalLinesCleared += linesCleared;
 			_level = 1 + (_totalLinesCleared / 10);
-			_score += linesCleared * 100;
-			_fallSpeed = Math.Max(0.1, _fallSpeed - 0.02);
+			_score += linesCleared * 100 * _scoreMultiplier;
+			_fallSpeed = Math.Max(0.05, _fallSpeed * 0.95);
 			GD.Print("Score: " + _score);
 
 			if (_score > _top10Threshold && _score > 0 && !_hasReachedTop10ThisGame)
@@ -390,27 +455,36 @@ public partial class Main : Node2D
 	{
 		DrawRect(new Rect2(XOffset, YOffset, Cols * CellSize, Rows * CellSize), new Color(0.1f, 0.1f, 0.1f));
 
-		for (int y = 0; y < Rows; y++)
+		if (_gameState == GameState.DifficultySelection)
 		{
-			for (int x = 0; x < Cols; x++)
+			DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + 20, Rows * CellSize / 2 - 100), "Select Difficulty", HorizontalAlignment.Left, -1, 32, Colors.White);
+			// We skip drawing the pieces and next shape below if we are in difficulty selection,
+			// but we still want to draw the grid and highscores.
+		}
+		else
+		{
+			for (int y = 0; y < Rows; y++)
 			{
-				if (_board[y, x] != 0)
+				for (int x = 0; x < Cols; x++)
 				{
-					DrawBlock(x, y, ColorsList[_board[y, x]]);
+					if (_board[y, x] != 0)
+					{
+						DrawBlock(x, y, ColorsList[_board[y, x]]);
+					}
 				}
 			}
-		}
 
-		if (_currentShape != null)
-		{
-			int size = _currentShape.GetLength(0);
-			for (int y = 0; y < size; y++)
+			if (_currentShape != null)
 			{
-				for (int x = 0; x < size; x++)
+				int size = _currentShape.GetLength(0);
+				for (int y = 0; y < size; y++)
 				{
-					if (_currentShape[y, x] != 0)
+					for (int x = 0; x < size; x++)
 					{
-						DrawBlock(_currentX + x, _currentY + y, ColorsList[_currentColor]);
+						if (_currentShape[y, x] != 0)
+						{
+							DrawBlock(_currentX + x, _currentY + y, ColorsList[_currentColor]);
+						}
 					}
 				}
 			}
@@ -428,23 +502,27 @@ public partial class Main : Node2D
 		// Draw next shape info
 		DrawString(ThemeDB.FallbackFont, new Vector2(10, 50), "Score: " + _score, HorizontalAlignment.Left, -1, 24, Colors.White);
 		DrawString(ThemeDB.FallbackFont, new Vector2(10, 80), "Level: " + _level, HorizontalAlignment.Left, -1, 24, Colors.White);
-		DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + Cols * CellSize + 50, 50), "Next:", HorizontalAlignment.Left, -1, 24, Colors.White);
 
-		if (_nextShape != null)
+		if (_gameState != GameState.DifficultySelection)
 		{
-			int nextSize = _nextShape.GetLength(0);
-			int previewXOffset = XOffset + Cols * CellSize + 50;
-			int previewYOffset = 80;
+			DrawString(ThemeDB.FallbackFont, new Vector2(XOffset + Cols * CellSize + 50, 50), "Next:", HorizontalAlignment.Left, -1, 24, Colors.White);
 
-			for (int y = 0; y < nextSize; y++)
+			if (_nextShape != null)
 			{
-				for (int x = 0; x < nextSize; x++)
+				int nextSize = _nextShape.GetLength(0);
+				int previewXOffset = XOffset + Cols * CellSize + 50;
+				int previewYOffset = 80;
+
+				for (int y = 0; y < nextSize; y++)
 				{
-					if (_nextShape[y, x] != 0)
+					for (int x = 0; x < nextSize; x++)
 					{
-						float px = previewXOffset + x * CellSize;
-						float py = previewYOffset + y * CellSize;
-						DrawRect(new Rect2(px + 1, py + 1, CellSize - 2, CellSize - 2), ColorsList[_nextColor]);
+						if (_nextShape[y, x] != 0)
+						{
+							float px = previewXOffset + x * CellSize;
+							float py = previewYOffset + y * CellSize;
+							DrawRect(new Rect2(px + 1, py + 1, CellSize - 2, CellSize - 2), ColorsList[_nextColor]);
+						}
 					}
 				}
 			}
@@ -458,7 +536,7 @@ public partial class Main : Node2D
 			DrawString(ThemeDB.FallbackFont, new Vector2(highscoreXOffset, highscoreYOffset + 30 + (i * 24)), $"{i + 1}. {_highscores[i]}", HorizontalAlignment.Left, -1, 20, Colors.White);
 		}
 
-		if (_gameOver)
+		if (_gameState == GameState.GameOver)
 		{
 			// Overlay
 			DrawRect(new Rect2(XOffset, YOffset, Cols * CellSize, Rows * CellSize), new Color(0, 0, 0, 0.7f));
