@@ -29,8 +29,8 @@ public partial class Main : Node2D
 	{
 		Colors.Black,
 		Colors.Cyan,
-		Colors.Blue,
-		Colors.Orange,
+		new Color(0.22f, 1f, 0.08f), // J (Neon Green)
+		new Color(0.22f, 1f, 0.08f), // L (Neon Green)
 		new Color(1.0f, 0.08f, 0.58f), // Neon Pink for O shape
 		Colors.Green,
 		Colors.Purple,
@@ -67,6 +67,9 @@ public partial class Main : Node2D
 	private int _top10Threshold = 0;
 	private CpuParticles2D _celebrationParticles;
 
+	private RichTextLabel _helloLabel;
+	private double _helloTimer = 3.0;
+
 	public override void _Ready()
 	{
 		_winSoundPlayer = new AudioStreamPlayer();
@@ -93,6 +96,14 @@ public partial class Main : Node2D
 
 		AddChild(_celebrationParticles);
 
+		_helloLabel = new RichTextLabel();
+		_helloLabel.BbcodeEnabled = true;
+		_helloLabel.Text = "[center][color=red]H[/color][color=orange]e[/color][color=yellow]l[/color][color=green]l[/color][color=blue]o[/color][color=purple]![/color][/center]";
+		_helloLabel.Position = new Vector2(XOffset, YOffset + Rows * CellSize / 2 - 20);
+		_helloLabel.Size = new Vector2(Cols * CellSize, 40);
+		_helloLabel.AddThemeFontSizeOverride("normal_font_size", 32);
+		AddChild(_helloLabel);
+
 		LoadHighscores();
 		_currentHighscore = _highscores.Count > 0 ? _highscores[0] : 0;
 		_top10Threshold = _highscores.Count == 10 ? _highscores[9] : 0;
@@ -104,6 +115,15 @@ public partial class Main : Node2D
 
 	public override void _Process(double delta)
 	{
+		if (_helloTimer > 0)
+		{
+			_helloTimer -= delta;
+			if (_helloTimer <= 0)
+			{
+				_helloLabel.QueueFree();
+			}
+		}
+
 		if (_gameOver) return;
 
 		_fallTimer += delta;
