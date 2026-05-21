@@ -35,7 +35,6 @@ public partial class Main : Node2D
 		Colors.Green,
 		Colors.Purple,
 		Colors.Red,
-		new Color(1f, 0.41f, 0.71f), // Pink
 		new Color(0f, 0.5f, 0.5f)    // Teal for Double Cross
 	};
 
@@ -48,8 +47,7 @@ public partial class Main : Node2D
 		new int[,] { {0, 5, 5}, {5, 5, 0}, {0, 0, 0} }, // S
 		new int[,] { {0, 6, 0}, {6, 6, 6}, {0, 0, 0} }, // T
 		new int[,] { {7, 7, 0}, {0, 7, 7}, {0, 0, 0} }, // Z
-		new int[,] { {0, 8, 0}, {8, 8, 8}, {0, 8, 0} }, // Cross
-		new int[,] { {0, 0, 9, 0, 0}, {0, 9, 9, 9, 0}, {0, 0, 9, 0, 0}, {0, 9, 9, 9, 0}, {0, 0, 9, 0, 0} } // Double Cross
+		new int[,] { {0, 0, 8, 0, 0}, {0, 8, 8, 8, 0}, {0, 0, 8, 0, 0}, {0, 8, 8, 8, 0}, {0, 0, 8, 0, 0} } // Double Cross
 	};
 
 	public enum GameState { DifficultySelection, Playing, GameOver }
