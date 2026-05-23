@@ -29,8 +29,8 @@ public partial class Main : Node2D
 	{
 		Colors.Black,
 		Colors.Cyan,
-		new Color(0.22f, 1f, 0.08f), // J (Neon Green)
-		new Color(0.22f, 1f, 0.08f), // L (Neon Green)
+		Colors.Blue, // J
+		Colors.Orange, // L
 		new Color(1.0f, 0.08f, 0.58f), // Neon Pink for O shape
 		Colors.Green,
 		Colors.Purple,
