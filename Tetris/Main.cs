@@ -75,6 +75,7 @@ public partial class Main : Node2D
 	private Button _btnEasy;
 	private Button _btnNormal;
 	private Button _btnHard;
+	private Button _btnExtreme;
 
 	public override void _Ready()
 	{
@@ -128,24 +129,31 @@ public partial class Main : Node2D
 
 		_btnEasy = new Button();
 		_btnEasy.Text = "Easy";
-		_btnEasy.Position = new Vector2(centerX, centerY - 60);
+		_btnEasy.Position = new Vector2(centerX, centerY - 90);
 		_btnEasy.Size = new Vector2(buttonWidth, buttonHeight);
 		_btnEasy.Pressed += () => OnDifficultySelected(1, 0.6);
 		AddChild(_btnEasy);
 
 		_btnNormal = new Button();
 		_btnNormal.Text = "Normal";
-		_btnNormal.Position = new Vector2(centerX, centerY);
+		_btnNormal.Position = new Vector2(centerX, centerY - 30);
 		_btnNormal.Size = new Vector2(buttonWidth, buttonHeight);
 		_btnNormal.Pressed += () => OnDifficultySelected(2, 0.45);
 		AddChild(_btnNormal);
 
 		_btnHard = new Button();
 		_btnHard.Text = "Hard";
-		_btnHard.Position = new Vector2(centerX, centerY + 60);
+		_btnHard.Position = new Vector2(centerX, centerY + 30);
 		_btnHard.Size = new Vector2(buttonWidth, buttonHeight);
 		_btnHard.Pressed += () => OnDifficultySelected(3, 0.3);
 		AddChild(_btnHard);
+
+		_btnExtreme = new Button();
+		_btnExtreme.Text = "Extreme";
+		_btnExtreme.Position = new Vector2(centerX, centerY + 90);
+		_btnExtreme.Size = new Vector2(buttonWidth, buttonHeight);
+		_btnExtreme.Pressed += () => OnDifficultySelected(4, 0.15);
+		AddChild(_btnExtreme);
 	}
 
 	private void OnDifficultySelected(int multiplier, double initialSpeed)
@@ -162,6 +170,7 @@ public partial class Main : Node2D
 		_btnEasy.Hide();
 		_btnNormal.Hide();
 		_btnHard.Hide();
+		_btnExtreme.Hide();
 
 		GenerateNextPiece();
 		SpawnPiece();
@@ -317,6 +326,7 @@ public partial class Main : Node2D
 		_btnEasy.Show();
 		_btnNormal.Show();
 		_btnHard.Show();
+		_btnExtreme.Show();
 
 		QueueRedraw();
 	}
