@@ -31,7 +31,7 @@ public partial class Main : Node2D
 		Colors.Cyan,
 		Colors.Blue, // J
 		Colors.Orange, // L
-		new Color(1.0f, 0.08f, 0.58f), // Neon Pink for O shape
+		new Color(1.0f, 1.0f, 0.0f), // Yellow for O shape
 		Colors.Green,
 		Colors.Purple,
 		Colors.Red,
