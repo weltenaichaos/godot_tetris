@@ -34,8 +34,7 @@ public partial class Main : Node2D
 		new Color(1.0f, 1.0f, 0.0f), // Yellow for O shape
 		Colors.Green,
 		Colors.Purple,
-		Colors.Red,
-		new Color(0f, 0.5f, 0.5f)    // Teal for Double Cross
+		Colors.Red
 	};
 
 	private static readonly int[][,] Shapes = new int[][,]
@@ -46,8 +45,7 @@ public partial class Main : Node2D
 		new int[,] { {4, 4}, {4, 4} }, // O
 		new int[,] { {0, 5, 5}, {5, 5, 0}, {0, 0, 0} }, // S
 		new int[,] { {0, 6, 0}, {6, 6, 6}, {0, 0, 0} }, // T
-		new int[,] { {7, 7, 0}, {0, 7, 7}, {0, 0, 0} }, // Z
-		new int[,] { {0, 0, 8, 0, 0}, {0, 8, 8, 8, 0}, {0, 0, 8, 0, 0}, {0, 8, 8, 8, 0}, {0, 0, 8, 0, 0} } // Double Cross
+		new int[,] { {7, 7, 0}, {0, 7, 7}, {0, 0, 0} } // Z
 	};
 
 	public enum GameState { DifficultySelection, Playing, GameOver }
