@@ -36,6 +36,7 @@ public partial class Main : Node2D
 		Colors.Purple,
 		Colors.Red,
 		Colors.Pink, // Cross
+		new Color(0.64f, 0.16f, 0.16f), // Brown
 		new Color(0.8f, 0.1f, 0.1f), // Bomb
 		new Color(0.1f, 0.6f, 0.9f) // Thunder
 	};
@@ -50,8 +51,9 @@ public partial class Main : Node2D
 		new int[,] { {0, 6, 0}, {6, 6, 6}, {0, 0, 0} }, // T
 		new int[,] { {7, 7, 0}, {0, 7, 7}, {0, 0, 0} }, // Z
 		new int[,] { {0, 8, 0}, {8, 8, 8}, {0, 8, 0} }, // Cross
-		new int[,] { {9} }, // Bomb
-		new int[,] { {10} } // Thunder
+		new int[,] { {9, 9, 9, 0}, {0, 9, 9, 9}, {0, 0, 0, 0}, {0, 0, 0, 0} }, // Large Z
+		new int[,] { {10} }, // Bomb
+		new int[,] { {11} } // Thunder
 	};
 
 	public enum GameState { DifficultySelection, Playing, GameOver }
@@ -430,11 +432,11 @@ public partial class Main : Node2D
 
 				for (int x = 0; x < Cols; x++)
 				{
-					if (_board[y, x] == 9)
+					if (_board[y, x] == 10)
 					{
 						bombs.Add((x, y));
 					}
-					else if (_board[y, x] == 10)
+					else if (_board[y, x] == 11)
 					{
 						thunders.Add((x, y));
 					}
