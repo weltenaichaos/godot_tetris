@@ -36,7 +36,7 @@ public partial class Main : Node2D
 		Colors.Purple,
 		Colors.Red,
 		Colors.Pink, // Cross
-		Colors.White // Question Mark
+		new Color(0.7f, 0.7f, 0.7f) // Question Mark
 	};
 
 	private static readonly int[][,] Shapes = new int[][,]
