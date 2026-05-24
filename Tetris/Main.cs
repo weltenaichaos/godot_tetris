@@ -36,7 +36,9 @@ public partial class Main : Node2D
 		Colors.Purple,
 		Colors.Red,
 		Colors.Pink, // Cross
-		new Color(0.7f, 0.7f, 0.7f) // Question Mark
+		new Color(0.7f, 0.7f, 0.7f), // Question Mark
+		new Color(0.8f, 0.1f, 0.1f), // Bomb
+		new Color(0.1f, 0.6f, 0.9f) // Thunder
 	};
 
 	private static readonly int[][,] Shapes = new int[][,]
@@ -49,7 +51,9 @@ public partial class Main : Node2D
 		new int[,] { {0, 6, 0}, {6, 6, 6}, {0, 0, 0} }, // T
 		new int[,] { {7, 7, 0}, {0, 7, 7}, {0, 0, 0} }, // Z
 		new int[,] { {0, 8, 0}, {8, 8, 8}, {0, 8, 0} }, // Cross
-		new int[,] { {0, 9, 9, 0, 0}, {9, 0, 0, 9, 0}, {0, 0, 9, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 9, 0, 0} } // Question Mark
+		new int[,] { {0, 9, 9, 0, 0}, {9, 0, 0, 9, 0}, {0, 0, 9, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 9, 0, 0} }, // Question Mark
+		new int[,] { {10} }, // Bomb
+		new int[,] { {11} } // Thunder
 	};
 
 	public enum GameState { DifficultySelection, Playing, GameOver }
@@ -423,6 +427,45 @@ public partial class Main : Node2D
 
 			if (full)
 			{
+				List<(int x, int y)> bombs = new List<(int x, int y)>();
+				List<(int x, int y)> thunders = new List<(int x, int y)>();
+
+				for (int x = 0; x < Cols; x++)
+				{
+					if (_board[y, x] == 10)
+					{
+						bombs.Add((x, y));
+					}
+					else if (_board[y, x] == 11)
+					{
+						thunders.Add((x, y));
+					}
+				}
+
+				foreach (var bomb in bombs)
+				{
+					for (int dy = -1; dy <= 1; dy++)
+					{
+						for (int dx = -1; dx <= 1; dx++)
+						{
+							int ny = bomb.y + dy;
+							int nx = bomb.x + dx;
+							if (ny >= 0 && ny < Rows && nx >= 0 && nx < Cols)
+							{
+								_board[ny, nx] = 0;
+							}
+						}
+					}
+				}
+
+				foreach (var thunder in thunders)
+				{
+					for (int ny = 0; ny < Rows; ny++)
+					{
+						_board[ny, thunder.x] = 0;
+					}
+				}
+
 				linesCleared++;
 				for (int yy = y; yy > 0; yy--)
 				{
